@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.TextView
 import org.json.JSONObject
 import java.io.BufferedReader
+import java.io.DataOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
 import java.lang.StringBuilder
@@ -26,11 +27,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         tvText = findViewById(R.id.tvText)
 
-        CallAPILoginAsyncTask().execute()
+        CallAPILoginAsyncTask("benardo", "123456").execute()
 
     }
 
-    private inner class CallAPILoginAsyncTask(): AsyncTask<Any, Void, String>() {
+    private inner class CallAPILoginAsyncTask(val username: String, val password: String): AsyncTask<Any, Void, String>() {
 
         private lateinit var customProgressDialog: Dialog
 
@@ -50,6 +51,27 @@ class MainActivity : AppCompatActivity() {
                 connection.doInput = true
                 connection.doOutput = true
 
+                connection.instanceFollowRedirects = false
+
+                // READ
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("charset", "utf-8")
+                connection.setRequestProperty("Accept", "application/json")
+
+                connection.useCaches = false
+
+                val writeDataOutputStream = DataOutputStream(connection.outputStream)
+                val jsonRequest = JSONObject()
+                jsonRequest.put("username", username)
+                jsonRequest.put("password", password)
+
+                writeDataOutputStream.writeBytes(jsonRequest.toString())
+                writeDataOutputStream.flush()
+                writeDataOutputStream.close()
+                // FINISH READING
+
+                // WRITE
                 val httpResult : Int = connection.responseCode
 
                 if(httpResult == HttpsURLConnection.HTTP_OK){
@@ -72,6 +94,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     result = stringBuilder.toString()
+
+                    // FINISH READING
 
 
                 } else{

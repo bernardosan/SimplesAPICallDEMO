@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -13,6 +14,7 @@ import java.lang.StringBuilder
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,17 +42,17 @@ class MainActivity : AppCompatActivity() {
         override fun doInBackground(vararg params: Any?): String {
             var result: String
 
-            var connection: HttpURLConnection? = null
+            var connection: HttpsURLConnection? = null
 
             try {
-                val url = URL("https://run.mocky.io/v3/12f6cb6e-fc28-4eca-874c-1a3a8142d16c")
-                connection = url.openConnection() as HttpURLConnection
+                val url = URL("https://run.mocky.io/v3/24ff9ff6-606c-4f71-a0d6-e3d3ca395d1b")
+                connection = url.openConnection() as HttpsURLConnection
                 connection.doInput = true
                 connection.doOutput = true
 
                 val httpResult : Int = connection.responseCode
 
-                if(httpResult == HttpURLConnection.HTTP_OK){
+                if(httpResult == HttpsURLConnection.HTTP_OK){
                     val inputStream = connection.inputStream
                     val reader = BufferedReader(InputStreamReader(inputStream))
                     val stringBuilder = StringBuilder()
@@ -95,9 +97,22 @@ class MainActivity : AppCompatActivity() {
 
 
             tvText = findViewById(R.id.tvText)
-            tvText?.text = result
+            val jsonObject = JSONObject(result)
+            val name = jsonObject.optString("name")
+            val id = jsonObject.optInt("id")
 
+            tvText?.text = "$name - $id"
 
+            val dataListArray = jsonObject.optJSONArray("datalist")
+            Log.i("Data list size: ${dataListArray.length()}", dataListArray.toString())
+
+            val listofArray = arrayListOf<String>()
+
+            for (item in 0 until dataListArray.length()){
+                var dataItemObject: JSONObject = dataListArray[item] as JSONObject
+                listofArray.add("${dataItemObject.optInt("id")} - ${dataItemObject.optString("name")}")
+            }
+            Log.i("Output", listofArray.toString())
         }
 
 

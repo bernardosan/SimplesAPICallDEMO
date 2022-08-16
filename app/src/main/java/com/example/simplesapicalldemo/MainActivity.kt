@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
+import com.google.gson.Gson
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.DataOutputStream
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
                 connection.instanceFollowRedirects = false
 
-                // READ
+                // WRITE
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.setRequestProperty("charset", "utf-8")
@@ -69,9 +70,9 @@ class MainActivity : AppCompatActivity() {
                 writeDataOutputStream.writeBytes(jsonRequest.toString())
                 writeDataOutputStream.flush()
                 writeDataOutputStream.close()
-                // FINISH READING
-
                 // WRITE
+
+                // INPUTSTREAM
                 val httpResult : Int = connection.responseCode
 
                 if(httpResult == HttpsURLConnection.HTTP_OK){
@@ -95,7 +96,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     result = stringBuilder.toString()
 
-                    // FINISH READING
 
 
                 } else{
@@ -114,13 +114,25 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
+            tvText = findViewById(R.id.tvText)
 
             cancelProgressDialog()
 
             Log.i("JSON RESPONSE RESULT", result!!)
 
 
-            tvText = findViewById(R.id.tvText)
+            // GSON READ EXAMPLE //
+            val responseData = Gson().fromJson(result, ResponseData::class.java)
+            Log.i("message", responseData.toString())
+            Log.i("message", responseData.id.toString())
+            Log.i("message", responseData.name)
+            for(item in responseData.datalist.indices){
+                Log.i("Id", responseData.datalist[item].id.toString())
+                Log.i("Name", responseData.datalist[item].name)
+            }
+
+
+            /* JSON READ EXAMPLE
             val jsonObject = JSONObject(result)
             val name = jsonObject.optString("name")
             val id = jsonObject.optInt("id")
@@ -136,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 var dataItemObject: JSONObject = dataListArray[item] as JSONObject
                 listofArray.add("${dataItemObject.optInt("id")} - ${dataItemObject.optString("name")}")
             }
-            Log.i("Output", listofArray.toString())
+            Log.i("Output", listofArray.toString())*/
         }
 
 
